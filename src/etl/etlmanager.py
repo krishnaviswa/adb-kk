@@ -1,28 +1,11 @@
 from pyspark.sql import SparkSession
 
-import os
-# import pkgutil
+# import os
+import pkgutil
 # import sys
 # import datetime
 # import time
-import boto3
 import json
-
-
-def get_aws_account_id():
-    """
-    returns AWS account ID
-    :return: long
-    """
-    return boto3.client('sts').get_caller_identity().get('Account')
-
-
-def get_aws_region():
-    """
-    returns AWS region
-    :return: string
-    """
-    return boto3.client('s3').meta.region_name
 
 
 def get_config():
@@ -30,8 +13,8 @@ def get_config():
 
     :return: json in dict format
     """
-    with open(os.path.abspath(os.path.join(os.path.dirname(__file__), 'config.json'))) as config_file:
-        return json.load(config_file)
+    config_file = pkgutil.get_data(__package__, 'config.json')
+    return json.loads(config_file.decode())
 
 
 class EtlManager(object):
@@ -39,59 +22,38 @@ class EtlManager(object):
     Class to set spark commonly used method
     """
 
-    def get_spark_session(self, app_name):
+    def set_spark_session(self, app_name):
+        global spark
         spark = SparkSession \
             .builder \
             .appName(app_name) \
             .getOrCreate()
         return spark
 
-    def extract_csv_data(self, spark, src_path, sp_options):
-        """Load data from csv file format.
-        :param spark: Spark, sp_options and src_path
-        :return: Spark DataFrame.
-        """
-        df_csv = spark.read.options(**sp_options).csv(src_path)
+    # def extract_csv_data(self, src_path, _schema, **sp_options):
+    #     """Load data from csv file format.
+    #     :param spark: Spark, sp_options and src_path
+    #     :return: Spark DataFrame.
+    #     """
+    #     print(type(spark))
+    #     df_csv = spark.read.options(**sp_options).schema(_schema).csv(str(src_path))
+    #     return df_csv
 
-        return df_csv
-
-    def extract_parquet_data(self, spark, src_path, sp_options):
+    def extract_parquet_data(self, src_path):
         """Load data from Parquet file format.
-        :param spark: Spark, csp_options and src_path
+        :param  src_path
         :return: Spark DataFrame.
         """
-        df_pqt = spark.read.options(**sp_options).parquet(src_path)
-
+        df_pqt = spark.read.parquet(src_path)
         return df_pqt
 
-    # def transform_data(df, stf):
-    #     """Transform original dataset.
-    #     :param df: Input DataFrame.
-    #     :param stf: The number of steps per-floor at 43 Tanner
-    #         Street.
-    #     :return: Transformed DataFrame.
-    #     """
-    #     df_transformed = (
-    #         df
-    #             .select(
-    #             col('id'),
-    #             concat_ws(
-    #                 ' ',
-    #                 col('first_name'),
-    #                 col('second_name')).alias('name'),
-    #             (col('floor') * lit(stf)).alias('steps_to_desk')))
-    #
-    #     return df_transformed
-    #
-    # def load_parquet_data(df):
-    #     """Collect data locally and write to parquet.
-    #     :param df: DataFrame to print.
-    #     :return: None
-    #     """
-    #     (df
-    #      .write
-    #      .csv('loaded_data', mode='overwrite', header=True))
-    #     return None
+    def write_parquet_data(df_pqt, write_method, tgt_path, col1, col2, col3):
+        """Collect data locally and write to parquet.
+        :param  write_method,tgt_path,col1,col2,col3
+        :return: None
+        """
+        df_pqt.write.mode(write_method).partitionBy(col1, col2, col3).parquet(tgt_path)
+        return None
     #
     # def create_test_data(spark, config):
     #     """Create test data.

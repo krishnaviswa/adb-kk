@@ -3,7 +3,7 @@
     "s3_paths": {
       "data_landing_bucket": "s3://adb-061553549694-landing/etl_landing/",
       "data_processing_bucket": "s3://adb-061553549694-processing/etl_processing/",
-      "data_curated": null,
+      "data_curated_bucket": "s3://adb-061553549694-curated/",
       "cicd": null,
       "dl_db": null,
       "scripts": {

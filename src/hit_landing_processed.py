@@ -4,7 +4,7 @@ from pyspark.sql.types import *
 import pyspark.sql.functions as F
 from pyspark.sql.types import *
 
-from etl.etlmanager import EtlManager, get_config
+from helper.etlmanager import EtlManager, get_config
 
 
 def main(src_name, src_path, tgt_path):
@@ -15,8 +15,8 @@ def main(src_name, src_path, tgt_path):
          StructField('ip', StringType(), nullable=True),
          StructField('event_list', StringType(), nullable=True),
          StructField('geo_city', StringType(), nullable=True),
-         StructField('geo_country', StringType(), nullable=True),
          StructField('geo_region', StringType(), nullable=True),
+         StructField('geo_country', StringType(), nullable=True),
          StructField('pagename', StringType(), nullable=True),
          StructField('page_url', StringType(), nullable=True),
          StructField('product_list', StringType(), nullable=True),

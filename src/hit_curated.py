@@ -4,7 +4,7 @@ import pyspark.sql.functions as F
 from pyspark.sql.types import *
 import datetime
 
-from etl.etlmanager import EtlManager, get_config
+from helper.etlmanager import EtlManager, get_config
 
 
 def main(src_name, src_path, tgt_path):

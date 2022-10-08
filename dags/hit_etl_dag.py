@@ -51,7 +51,7 @@ JOB_FLOW_OVERRIDES = {
                 "InstanceCount": 2,
             },
         ],
-        "KeepJobFlowAliveWhenNoSteps": False,
+        "KeepJobFlowAliveWhenNoSteps": True,
         "TerminationProtected": False,
     },
     "VisibleToAllUsers": True,
@@ -110,8 +110,7 @@ with DAG(
         schedule_interval='@once',
         tags=['emr'],
 ) as dag:
-
-    start_data_pipeline = DummyOperator(task_id="start_data_pipeline")
+    start_data_pipeline = DummyOperator(task_id="end_data_pipeline")
 
     cluster_creator = EmrCreateJobFlowOperator(
         task_id='create_job_flow',

@@ -4,10 +4,11 @@ from datetime import timedelta
 from airflow import DAG
 from airflow.contrib.operators.emr_add_steps_operator import EmrAddStepsOperator
 from airflow.contrib.operators.emr_create_job_flow_operator import EmrCreateJobFlowOperator
+from airflow.providers.amazon.aws.operators.glue import GlueJobOperator
+from airflow.providers.amazon.aws.operators.glue_crawler import GlueCrawlerOperator
 from airflow.contrib.sensors.emr_step_sensor import EmrStepSensor
 from airflow.utils.dates import days_ago
 from airflow.operators.dummy_operator import DummyOperator
-
 
 DAG_ID = os.path.basename(__file__).replace('.py', '')
 
@@ -65,7 +66,6 @@ JOB_FLOW_OVERRIDES = {
     ]
 }
 
-
 SPARK_STEPS = [
     {
         "Name": "etl process landing to processed",
@@ -77,8 +77,8 @@ SPARK_STEPS = [
                 "--deploy-mode",
                 "client",
                 "--py-files",
-                "s3://adb-061553549694-code-logs/emr-scripts/helper.zip",
-                "s3://adb-061553549694-code-logs/emr-scripts/hit_landing_processed.py",
+                "s3://adb-cfn-script-061553549694-us-east-1/emr_scripts/helper.zip",
+                "s3://adb-cfn-script-061553549694-us-east-1/emr_scripts/hit_landing_processed.py",
                 "hit_process"
             ],
         },
@@ -93,13 +93,34 @@ SPARK_STEPS = [
                 "--deploy-mode",
                 "client",
                 "--py-files",
-                "s3://adb-061553549694-code-logs/emr-scripts/helper.zip",
-                "s3://adb-061553549694-code-logs/emr-scripts/hit_curated.py",
+                "s3://adb-cfn-script-061553549694-us-east-1/emr_scripts/helper.zip",
+                "s3://adb-cfn-script-061553549694-us-east-1/emr_scripts/hit_curated.py",
                 "hit_process"
             ],
         },
     }
 ]
+
+glue_crawler_raw = {
+    'Name': 'adb-cfn-raw',
+    'Role': 'arn:aws:iam::061553549694:role/EmrDemoCrawlerRole',
+    'DatabaseName': 'adb_db_cfn',
+    'Targets': {'S3Targets': [{'Path': f'adb-cfn-raw-061553549694-us-east-1/etl_landing/'}]},
+}
+
+glue_crawler_processed = {
+    'Name': 'adb-cfn-processed',
+    'Role': 'arn:aws:iam::061553549694:role/EmrDemoCrawlerRole',
+    'DatabaseName': 'adb_db_cfn',
+    'Targets': {'S3Targets': [{'Path': f'adb-cfn-processed-061553549694-us-east-1/etl_processing/'}]},
+}
+
+glue_crawler_curated = {
+    'Name': 'adb-cfn-curated',
+    'Role': 'arn:aws:iam::061553549694:role/EmrDemoCrawlerRole',
+    'DatabaseName': 'adb_db_cfn',
+    'Targets': {'S3Targets': [{'Path': f'adb-cfn-curated-061553549694-us-east-1/'}]},
+}
 
 with DAG(
         dag_id=DAG_ID,
@@ -110,8 +131,6 @@ with DAG(
         schedule_interval='@once',
         tags=['emr'],
 ) as dag:
-    start_data_pipeline = DummyOperator(task_id="end_data_pipeline")
-
     cluster_creator = EmrCreateJobFlowOperator(
         task_id='create_job_flow',
         job_flow_overrides=JOB_FLOW_OVERRIDES
@@ -130,6 +149,22 @@ with DAG(
         step_id="{{ task_instance.xcom_pull(task_ids='add_steps', key='return_value')[0] }}",
         aws_conn_id='aws_default',
     )
+
+    crawl_raw = GlueCrawlerOperator(
+        task_id='crawl_raw',
+        config=glue_crawler_raw,
+    )
+
+    crawl_processs = GlueCrawlerOperator(
+        task_id='crawl_processed',
+        config=glue_crawler_processed,
+    )
+
+    crawl_curated = GlueCrawlerOperator(
+        task_id='crawl_curated',
+        config=glue_crawler_curated,
+    )
+
     end_data_pipeline = DummyOperator(task_id="end_data_pipeline")
 
-    cluster_creator >> hit_etl >> step_checker >> end_data_pipeline
+    cluster_creator >> hit_etl >> step_checker >> crawl_raw >> crawl_processs >> crawl_curated >> end_data_pipeline

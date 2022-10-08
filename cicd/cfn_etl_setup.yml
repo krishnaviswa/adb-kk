@@ -116,7 +116,7 @@ Resources:
   LogsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Join ['-', ['adb-cfn', 'logs', !Ref 'AWS::AccountId', !Ref 'AWS::Region']]
+      BucketName: !Join ['-', ['adb-', !Ref 'AWS::AccountId', '-code-logs/airflow_logs/']]
       VersioningConfiguration:
         Status: Enabled
       BucketEncryption:
@@ -158,7 +158,7 @@ Resources:
       CatalogId: !Ref AWS::AccountId
       DatabaseInput:
         Description: 'EMR Glue Data Catalog'
-        Name: 'hit_cfn'
+        Name: 'adb_db_cfn'
         LocationUri: !Ref GlueDatabaseBucket
   CrawlerRole:
     Type: AWS::IAM::Role
@@ -222,6 +222,24 @@ Resources:
       - CrawlerRole
       - GlueDatabase
       - ProcessedBucket
+  CurateCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: 'adb-cfn-curated'
+      Role: !GetAtt 'CrawlerRole.Arn'
+      DatabaseName: !Ref GlueDatabase
+      Targets:
+        S3Targets:
+          - Path: !Ref CuratedBucket
+      SchemaChangePolicy:
+        UpdateBehavior: 'UPDATE_IN_DATABASE'
+        DeleteBehavior: 'LOG'
+      TablePrefix: 'processed_'
+      Configuration: "{\"Version\":1.0,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}}}"
+    DependsOn:
+      - CrawlerRole
+      - GlueDatabase
+      - CuratedBucket
 #  Cluster:
 #    Type: AWS::EMR::Cluster
 #    Properties:

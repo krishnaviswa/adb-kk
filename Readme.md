@@ -1,8 +1,3 @@
-Design Flow:
-    
-  
-
-
 Build Steps carried out:
 
 1. AWS Transfer Family (for SFTP Push of data files) , created in AWS Console.

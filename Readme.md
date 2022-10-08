@@ -33,9 +33,9 @@ Components:
 
 Exceptions/Challenges:
 
-a. CFN is not so friendly in terms of redeploying existing objects/resources. Need to explore how to retain existing resource. I used terraform in the past which was better.
-b. EMR scaling is not enabled in CFN stack, from console it was set.
-c. Bucket lifecycle policies are not set in CFN stack, from console it was set.
-d. Though i have the Stack with airflow and EMR, MWAA ui is not connecting even after vpc peering/SG open for public. Need to explore.
+1. CFN is not so friendly in terms of redeploying existing objects/resources. Need to explore how to retain existing resource. I used terraform in the past which was better.
+2. EMR scaling is not enabled in CFN stack, from console it was set.
+3. Bucket lifecycle policies are not set in CFN stack, from console it was set.
+4. Though i have the Stack with airflow and EMR, MWAA ui is not connecting even after vpc peering/SG open for public. Need to explore.
 
 Overall, I managed to setup ETL pipeline and completed this assessment in mid of my current project schedule.

@@ -12,8 +12,15 @@ Build Steps carried out:
 Components:
 1. Github Repo as code repository. I assume CloudShell as CICD server to clone github and push artifacts to AWS account.
 2. set_env.sh, a bash script for install and move code scripts/artifacts to designated S3 buckets.
-3. S3 buckets and policies
-4. Cloud formation templates -2
+3. S3 buckets and policies. Data Lake approach with 3 buckets
+   1. Buckets are AES256 SSE_S3 encrypted
+   2. Lifecycle policies to Storage IA and Glaciers ar e set by Console.. (short of time tod od in CD)
+   3. Source files are extracted as Spark DF and deduplicated for the hit_time_gmt and datetime
+   4. Then, df write into Processed bucket in Parquet format with partitioned by date
+   5. Then, from Processed bucket, data is transformed/aggregated and wrote it into csv format with partitioned by geo county,geo region and date in Curated bucket
+   6. Curated bucket will also have data agg with result of this assessment
+   7. SQS/SNS are not built (short of time) after etl dag completion   
+4. Cloud formation templates -2 one for VPC (AWS and one for ETL resources)
 5. Pyspark scripts for raw to landing and further to curated
 6. Helper python module 
 7. Config files for bucket and Crawler names
@@ -21,6 +28,8 @@ Components:
 9. Glue jobs (but dropped intermittently considering the transformation complexities). Not checked in. Can show on Code Review.
 
  Steps to run: Clone Github Repo (https://github.com/krishnaviswa/adb-kk/) and start set_env.sh as onetime setup to create/provision cloud resources.
+
+
 
 Exceptions/Challenges:
 

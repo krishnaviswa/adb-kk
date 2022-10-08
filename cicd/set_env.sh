@@ -8,7 +8,7 @@ aws configure set region "us-east-1"
 
 # Clone repo and install some useful python packages
 git clone https://github.com/krishnaviswa/adb-kk.git
-cd adb-kk
+cd adb-kk/cicd
 python3 -m pip install -r requirements.txt
 
 

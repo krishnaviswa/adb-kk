@@ -8,6 +8,13 @@ from helper.etlmanager import EtlManager, get_config
 
 
 def main(src_name, src_path, tgt_path):
+    """
+    :param src_name: src file
+    :param src_path: src path
+    :param tgt_path: target path
+    :return: None
+    """
+    # Enforcing Schema
     _schema = StructType(
         [StructField('hit_time_gmt', IntegerType(), nullable=True),
          StructField('date_time', TimestampType(), nullable=True),
@@ -23,6 +30,7 @@ def main(src_name, src_path, tgt_path):
          StructField('referrer', StringType(), nullable=True)]
     )
 
+    # df read options
     sp_options = {"header": True,
                   "sep": "\t",
                   "quote": "\"",
@@ -33,15 +41,16 @@ def main(src_name, src_path, tgt_path):
     hit_process = EtlManager()
     spark = hit_process.set_spark_session(src_name)
 
+    # read source to spark df
     df_src = spark.read.options(**sp_options).schema(_schema).csv(src_path)
     # df_src = EtlManager.extract_csv_data( src_path,_schema, sp_options)
-    print(df_src.printSchema())
-    df_src = df_src.drop_duplicates(["hit_time_gmt", "date_time"])
-    print(f"Count {df_src.count()}")
-    df_src = df_src.withColumn('date', F.to_date(F.to_timestamp(df_src.date_time, "y-M-d H:mm:ss")))
 
+    # drop unwanted duplicates
+    df_src = df_src.drop_duplicates(["hit_time_gmt", "date_time"])
+
+    # adding date column for partitions to handle and reprocess daily loads
+    df_src = df_src.withColumn('date', F.to_date(F.to_timestamp(df_src.date_time, "y-M-d H:mm:ss")))
     df_src.write.mode("overwrite").partitionBy("date").parquet(tgt_path)
-    print(df_src.printSchema())
 
 
 if __name__ == "__main__":

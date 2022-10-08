@@ -116,7 +116,7 @@ Resources:
   LogsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Join ['-', ['adb-', !Ref 'AWS::AccountId', '-code-logs/airflow_logs/']]
+      BucketName: !Join ['-', ['adb-', !Ref 'AWS::AccountId', '-code-logs']]
       VersioningConfiguration:
         Status: Enabled
       BucketEncryption:

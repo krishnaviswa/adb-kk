@@ -5,9 +5,9 @@ Design Flow:
 
 Build Steps carried out:
 
-1. AWS Transfer Family (for SFTP Push of data files) in AWS Console.
-2. Few Necessary in AWS Console for AWS Cloud Formation, Transfer Family  
-3. Set up scripts, for setting up env and trigger cloud formation templates. 
+1. AWS Transfer Family (for SFTP Push of data files) , created in AWS Console.
+2. Few initial roles created in AWS Console for AWS Cloud Formation, Transfer Family  
+3. Set up scripts,install libraries for new env and trigger cloud formation templates. 
 4. VPC Cloud formation (CFN) stack for MWAA Networking setup. (AWS default template)
 5. Cloud formation (CFN) stack for creating S3buckets, EMR, Glue Crawler and MWAAirflow setup. Note: However MWAA UI via CFN didn't work. Hence I used Console to create MWAA env, which then spin up EMR cluster and submit jobs Automatically from S3.
 6. AWS cli2 to move the pyspark scripts, dags and helper.zip file into S3 buckets
@@ -15,15 +15,17 @@ Build Steps carried out:
 8. Run the Athena to check the data counts across buckets
 
 Components:
-1. Github Repo with code repository. I assume CloudShell as CICD server to clone github and push artifacts to AWS account.
-2. Setup_env bash script for install and move code scripts/artifacts to designated S3 buckets.
-3. Cloud formation templates -2
-4. Pyspark scripts -2
-5. Helper python module -2 (OOPS style)
-6. Cnfig files for bucket and Crawler names
-7. MWAA Dags
-8. Glue jobs (but dropped intermittently considering the transformation complexities)
+1. Github Repo as code repository. I assume CloudShell as CICD server to clone github and push artifacts to AWS account.
+2. set_env.sh, a bash script for install and move code scripts/artifacts to designated S3 buckets.
+3. S3 buckets and policies
+4. Cloud formation templates -2
+5. Pyspark scripts for raw to landing and further to curated
+6. Helper python module 
+7. Config files for bucket and Crawler names
+8. MWAA Dags and requirements.txt for file AWS libraries 
+9. Glue jobs (but dropped intermittently considering the transformation complexities). Not checked in. Can show on Code Review.
 
+ Steps to run: Clone Github Repo (https://github.com/krishnaviswa/adb-kk/) and start set_env.sh as onetime setup to create/provision cloud resources.
 
 Exceptions/Challenges:
 
